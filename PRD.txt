@@ -1,0 +1,499 @@
+Project PRD
+
+Project Name: TeleDrive (working title)
+
+Goal:
+A lightweight browser-based cloud storage service using Telegram Bot API as storage and Cloudflare Workers as the backend layer.
+
+The system should support authenticated personal storage, sharing links, file management, and preview capabilities while keeping server infrastructure minimal and mostly client-side.
+
+Core Architecture
+Storage Layer
+
+Uses the Telegram Bot API.
+
+Entity: telegram_file
+
+Each uploaded chunk is stored as a Telegram message in a private channel.
+
+Stored metadata:
+
+file_id
+message_id
+channel_id
+chunk_index
+chunk_size
+checksum
+
+Files larger than 50MB are split client-side.
+
+Backend Layer
+
+Runs on Cloudflare Workers
+
+Responsibilities:
+
+• authentication
+• metadata management
+• file indexing
+• share link generation
+• permission checks
+• message retrieval from Telegram
+
+Workers never process file data, only metadata.
+
+Database
+
+Use Cloudflare D1 or Cloudflare KV
+
+Recommended: D1 (SQL) because folders and ownership relationships are easier.
+
+Tables
+users
+id
+email
+password_hash
+google_id
+created_at
+storage_used
+files
+id
+owner_id
+name
+mime_type
+size
+created_at
+folder_id
+is_deleted
+share_id
+chunks
+id
+file_id
+chunk_index
+telegram_message_id
+telegram_file_id
+chunk_size
+checksum
+folders
+id
+owner_id
+name
+parent_id
+created_at
+trash
+id
+file_id
+deleted_at
+shares
+share_id
+file_id
+created_at
+Client Responsibilities
+
+All heavy work happens in the browser.
+
+Client tasks:
+
+File Upload
+
+user selects file
+
+browser splits file into chunks
+
+chunks uploaded sequentially to worker
+
+worker forwards to Telegram
+
+Chunk size recommendation:
+
+8MB
+
+Reason:
+Safe margin below Telegram limit.
+
+After upload:
+
+client sends chunk metadata to worker
+worker records chunk order
+File Download
+
+client requests file metadata
+
+worker returns chunk list
+
+client downloads chunks
+
+browser merges chunks
+
+file delivered to user
+
+Chunk merging uses:
+
+Blob()
+Streaming Preview
+
+For small media files (<20MB):
+
+Client can stream directly.
+
+Video preview:
+
+HTML5 video
+
+Image preview:
+
+img element
+
+Audio preview:
+
+audio element
+
+Documents:
+
+PDF viewer
+Authentication System
+
+Two methods.
+
+Email + Password
+
+Worker handles:
+
+bcrypt password hashing
+JWT session tokens
+
+Session stored in cookie.
+
+Google Sign-In
+
+Use:
+
+Google Identity Services
+
+Flow:
+
+Google login
+
+token sent to worker
+
+worker verifies token
+
+user account created if new
+
+File System UX
+
+Must feel like a normal cloud drive.
+
+Features:
+
+File operations
+
+Upload
+Download
+Rename
+Delete
+Move
+Copy
+
+Folder system
+
+Create folder
+Nested folders
+Drag-drop move
+
+Folder path example:
+
+/Movies/Anime/Attack on Titan
+Trash System
+
+Deleting a file moves it to trash.
+
+Trash items auto delete after:
+
+30 days
+
+User can:
+
+Restore
+Delete permanently
+
+Sharing System
+
+Shareable files generate a public link.
+
+Example:
+
+https://domain.com/s/abc123
+
+Rules:
+
+• no authentication required
+• no expiry
+• direct download supported
+
+Worker resolves share ID → file → chunk list.
+
+Client downloads.
+
+Metadata Size Optimization
+
+Workers must remain fast.
+
+Use compact metadata.
+
+Example chunk metadata:
+
+{
+ index: 0,
+ msg: 12345,
+ fid: "ABCDEF"
+}
+File Upload Flow
+
+Client:
+
+select file
+split file
+send chunk
+receive telegram message id
+store metadata
+
+Worker:
+
+receive chunk
+forward to telegram
+return message id
+
+Telegram endpoint:
+
+sendDocument
+File Download Flow
+
+Client:
+
+request file metadata
+receive chunk list
+download chunks
+merge chunks
+save file
+UI Requirements
+
+Single page app.
+
+No frameworks required but allowed.
+
+Suggested stack:
+
+Vanilla JS
+TailwindCSS
+Alpine.js
+
+Works everywhere.
+
+Interface Design
+
+Drive-like layout.
+
+Left sidebar:
+
+My Files
+Shared
+Trash
+Settings
+
+Main panel:
+
+Grid/List toggle.
+
+File preview icons.
+
+Top bar:
+
+Upload button
+New Folder
+Search
+
+Right click menu:
+
+Download
+Rename
+Delete
+Share
+
+Drag and Drop
+
+Drag file into folder.
+
+Drag file to upload.
+
+Browser API:
+
+HTML5 drag and drop
+File Preview System
+
+Preview supported:
+
+Images
+Videos
+Audio
+PDF
+Text
+
+Preview modal opens.
+
+Large files:
+
+preview disabled.
+
+Additional Smart Features
+Upload Resume
+
+If upload stops:
+
+resume from last chunk.
+
+Store partial metadata.
+
+File Integrity
+
+Use checksum.
+
+Algorithm:
+
+SHA256
+
+Verify chunk integrity before merge.
+
+Storage Quota
+
+Optional.
+
+Example:
+
+10GB per user
+Search
+
+Search by:
+
+filename
+mime type
+Upload Progress
+
+Progress bar per file.
+
+Chunk progress.
+
+Folder Breadcrumbs
+
+Example:
+
+Home / Movies / Anime
+File Sorting
+
+Sort by:
+
+Name
+Size
+Date
+
+Share Page
+
+Public page layout:
+
+File name
+Size
+Download button
+
+Optional preview.
+
+Security
+
+Critical checks:
+
+Worker validates:
+
+file owner
+folder owner
+share permission
+
+Never trust client metadata.
+
+Rate Limits
+
+Prevent abuse.
+
+Example:
+
+100 uploads per hour
+Deployment Simplicity
+
+Project structure should stay small.
+
+Example structure:
+
+/frontend
+ index.html
+ app.js
+ ui.js
+ uploader.js
+ downloader.js
+
+/worker
+ worker.js
+
+/database
+ schema.sql
+
+Total files:
+
+~10-15
+
+Simple.
+
+Worker Endpoints
+
+Example API routes.
+
+POST /auth/login
+POST /auth/google
+
+GET /files
+POST /upload-chunk
+POST /upload-complete
+
+GET /file/:id
+GET /download/:id
+
+POST /rename
+POST /delete
+
+POST /share
+GET /share/:id
+Telegram Setup
+
+Create bot via:
+
+Telegram Bot API
+
+Steps:
+
+1 create bot
+2 create private channel
+3 add bot as admin
+
+Store:
+
+BOT_TOKEN
+CHANNEL_ID
+
+Worker uses these.
+
+Performance Tricks
+
+Parallel downloads.
+
+Example:
+
+download 4 chunks simultaneously
+
+Browser merges after.

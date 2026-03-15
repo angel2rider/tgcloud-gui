@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TeleDrive</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    /* ═══════════════════════════════════════════════════════════════
+       TOKENS
+    ═══════════════════════════════════════════════════════════════ */
+    :root, [data-theme="blue"] {
+      --bg: #080c14;
+      --panel: #0d1420;
+      --surface: #111927;
+      --surface2: #16202e;
+      --border: #1e2d42;
+      --border2: #243448;
+      --text: #c8d8ed;
+      --text-dim: #5a7494;
+      --muted: var(--text-dim);
+      --text-bright: #e8f2ff;
+      --accent: #00b4d8;
+      --brand-rgb: 0, 180, 216;
+      --accent2: #7c3aed;
+      --green: #10b981;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --font: 'Syne', sans-serif;
+      --mono: 'IBM Plex Mono', monospace;
+      --radius: 8px;
+      --radius-lg: 14px;
+      --shadow: 0 4px 24px rgba(0, 0, 0, .5);
+    }
+
+    [data-theme="emerald"] {
+      --bg: #022c22;
+      --panel: #064e3b;
+      --surface: #065f46;
+      --surface2: #059669;
+      --border: #047857;
+      --border2: #10b981;
+      --text: #a7f3d0;
+      --text-dim: #6ee7b7;
+      --muted: var(--text-dim);
+      --text-bright: #ecfdf5;
+      --accent: #34d399;
+      --brand-rgb: 52, 211, 153;
+      --accent2: #10b981;
+    }
+
+    [data-theme="violet"] {
+      --bg: #1e1b4b;
+      --panel: #2e1065;
+      --surface: #4c1d95;
+      --surface2: #5b21b6;
+      --border: #6d28d9;
+      --border2: #7c3aed;
+      --text: #ddd6fe;
+      --text-dim: #a78bfa;
+      --muted: var(--text-dim);
+      --text-bright: #f5f3ff;
+      --accent: #8b5cf6;
+      --brand-rgb: 139, 92, 246;
+      --accent2: #a78bfa;
+    }
+
+    [data-theme="rose"] {
+      --bg: #4c0519;
+      --panel: #881337;
+      --surface: #9f1239;
+      --surface2: #be123c;
+      --border: #e11d48;
+      --border2: #f43f5e;
+      --text: #fecdd3;
+      --text-dim: #fda4af;
+      --muted: var(--text-dim);
+      --text-bright: #fff1f2;
+      --accent: #fb7185;
+      --brand-rgb: 251, 113, 133;
+      --accent2: #f43f5e;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    i[data-lucide] {
+      vertical-align: middle;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      position: relative;
+      top: -0.5px; /* Optical centering */
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       LAYOUT
+    ═══════════════════════════════════════════════════════════════ */
+    #app-screen {
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: 224px;
+      min-width: 224px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: #000;
+    }
+
+    .logo-text {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text-bright);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 12px 0;
+      overflow-y: auto;
+    }
+
+    .nav-section {
+      padding: 0 12px;
+      margin-bottom: 4px;
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding: 8px 8px 4px;
+    }
+
+    [data-nav] {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      color: var(--text-dim);
+      font-weight: 500;
+      font-size: 13.5px;
+      transition: background .15s, color .15s;
+    }
+
+    [data-nav]:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    [data-nav].active {
+      background: linear-gradient(90deg, rgba(var(--brand-rgb), .12), rgba(124, 58, 237, .06));
+      color: var(--accent);
+      box-shadow: inset 2px 0 0 var(--accent);
+    }
+
+    [data-nav] .nav-icon {
+      font-size: 15px;
+      width: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Storage widget */
+    .storage-widget {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .storage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .storage-title {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    #storage-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+    }
+
+    .storage-track {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    #storage-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      transition: width .6s ease;
+      width: 0%;
+    }
+
+    /* User row */
+    .user-row {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar-wrap {
+      width: 32px;
+      height: 32px;
+      background: var(--surface2);
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid var(--border2);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--text-dim);
+    }
+
+    #user-avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: none;
+    }
+
+    #user-display {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #btn-logout {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+
+    #btn-logout:hover {
+      color: var(--red);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* ── MAIN PANEL ── */
+    #main-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+      position: relative;
+    }
+
+    /* Top bar */
+    #topbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+      height: 64px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+
+    #panel-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-bright);
+      letter-spacing: -0.3px;
+      margin-right: 8px;
+    }
+
+    #breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-dim);
+      flex: 1;
+    }
+
+    .bc-item {
+      cursor: pointer;
+      transition: color .15s;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+
+    .bc-item:hover {
+      color: var(--accent);
+      background: var(--surface);
+    }
+
+    .bc-sep {
+      color: var(--border2);
+      display: flex;
+      align-items: center;
+    }
+
+    #topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    /* Search */
+    .search-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex: 1;
+      max-width: 320px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      color: var(--text-dim);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    #search-input {
+      width: 100%;
+      height: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 0 16px 0 36px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13.5px;
+      outline: none;
+      transition: all .2s;
+    }
+
+    #search-input:focus {
+      border-color: var(--accent);
+      background: var(--surface2);
+      box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.15);
+    }
+
+    #search-input::placeholder {
+      color: var(--text-dim);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 16px;
+      border-radius: var(--radius);
+      border: none;
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: #22d3ee;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--surface2);
+      border-color: var(--border2);
+    }
+
+    .btn-ghost {
+      background: none;
+      color: var(--text-dim);
+    }
+
+    .btn-ghost:hover {
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: var(--text-dim);
+      font-size: 14px;
+      transition: all .15s;
+    }
+
+    .btn-icon:hover {
+      background: var(--surface);
+      color: var(--text);
+    }
+
+    .btn-icon.danger:hover {
+      color: var(--red);
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    .btn-icon.active {
+      color: var(--accent);
+      background: rgba(var(--brand-rgb), 0.1);
+    }
+
+    /* Layout toggle */
+    .layout-toggle {
+      display: flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2px;
+    }
+
+    .layout-toggle button {
+      background: none;
+      border: none;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-dim);
+      border-radius: 6px;
+      transition: all .15s;
+    }
+
+    .layout-toggle button:hover {
+      color: var(--text);
+    }
+
+    .layout-toggle button.active {
+      background: var(--surface2);
+      color: var(--accent);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    /* Sort select */
+    #sort-select {
+      height: 36px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 12.5px;
+      padding: 0 10px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    #sort-select:hover {
+      border-color: var(--border2);
+    }
+
+    /* File content area */
+    #content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    #content-area::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #content-area::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #content-area::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+      border: 2px solid var(--bg);
+    }
+
+    #content-area::-webkit-scrollbar-thumb:hover {
+      background: var(--border2);
+    }
+
+    /* ── LIST HEADERS ── */
+    .list-header {
+      display: grid;
+      grid-template-columns: 32px 1fr 100px 140px 80px;
+      gap: 16px;
+      padding: 0 16px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+
+    .list-header.hidden {
+      display: none;
+    }
+
+    /* ── FILE GRID ── */
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 20px;
+    }
+
+    .card-grid {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all .15s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      text-align: center;
+    }
+
+    .card-grid:hover {
+      border-color: var(--border2);
+      background: var(--surface2);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .card-grid.selected {
+      border-color: var(--accent);
+      background: rgba(var(--brand-rgb), .08);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .card-icon {
+      font-size: 40px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .folder-icon {
+      filter: drop-shadow(0 4px 12px rgba(var(--brand-rgb), .3));
+    }
+
+    .card-info {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-bright);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-size {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+    }
+
+    /* ── FILE LIST ── */
+    .card-list {
+      display: grid;
+      grid-template-columns: 32px 1fr 100px 140px 80px;
+      gap: 16px;
+      align-items: center;
+      padding: 10px 16px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      background: transparent;
+      transition: all .1s;
+      border: 1px solid transparent;
+    }
+
+    .card-list:hover {
+      background: var(--surface);
+      border-color: var(--border);
+    }
+
+    .card-list.selected {
+      background: rgba(var(--brand-rgb), .08);
+      border-color: var(--accent);
+    }
+
+    .card-icon-sm {
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .card-name-list {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-bright);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card-meta {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: var(--mono);
+    }
+
+    .dragging {
+      opacity: .5;
+    }
+
+    .drop-target {
+      border-color: var(--accent) !important;
+      background: rgba(var(--brand-rgb), .08) !important;
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      gap: 12px;
+    }
+
+    .empty-icon {
+      font-size: 56px;
+      opacity: .3;
+    }
+
+    .empty-text {
+      color: var(--text-dim);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    /* Trash */
+    .trash-card {
+      grid-template-columns: 20px 1fr 100px 140px auto;
+    }
+
+    .trash-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       SELECTION BAR
+    ───────────────────────────────────────────────────────────── */
+    #selection-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      z-index: 50;
+    }
+
+    #selection-bar [data-sel-count] {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       UPLOAD PANEL
+    ───────────────────────────────────────────────────────────── */
+    #upload-panel {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 320px;
+      background: var(--panel);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      z-index: 60;
+      overflow: hidden;
+    }
+
+    .upload-panel-header {
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #upload-list {
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .upload-row {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .upload-row-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+
+    .upload-name {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 200px;
+    }
+
+    .upload-status {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-dim);
+    }
+
+    .upload-bar-wrap {
+      height: 3px;
+      background: var(--surface2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .upload-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 2px;
+      transition: width .3s;
+    }
+
+    .upload-bar.done {
+      background: var(--green);
+    }
+
+    .upload-bar.error {
+      background: var(--red);
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       DROP OVERLAY
+    ───────────────────────────────────────────────────────────── */
+    #drop-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(var(--brand-rgb), .08);
+      border: 3px dashed var(--accent);
+      border-radius: var(--radius-lg);
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      margin: 12px;
+    }
+
+    #drop-overlay .drop-message {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent);
+      text-shadow: 0 0 30px rgba(var(--brand-rgb), .5);
+      letter-spacing: -0.5px;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       CONTEXT MENU
+    ───────────────────────────────────────────────────────────── */
+    #ctx-menu {
+      position: fixed;
+      background: var(--panel);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 6px;
+      min-width: 170px;
+      z-index: 200;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .6);
+      animation: popIn .12s ease;
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(.94);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .ctx-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      transition: background .1s;
+    }
+
+    .ctx-item:hover {
+      background: var(--surface2);
+    }
+
+    .ctx-item.danger {
+      color: var(--red);
+    }
+
+    .ctx-item .ctx-icon {
+      font-size: 14px;
+      width: 18px;
+      text-align: center;
+    }
+
+    .ctx-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       MODALS
+    ───────────────────────────────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .6);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-box {
+      background: var(--panel);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 28px 28px 24px;
+      min-width: 380px;
+      max-width: 90vw;
+      box-shadow: var(--shadow);
+      animation: slideUp .2s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-bright);
+      margin-bottom: 16px;
+    }
+
+    .modal input[type="text"],
+    .modal input[type="email"],
+    .modal input[type="password"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .modal input:focus {
+      border-color: var(--accent);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    /* Preview modal */
+    #modal-preview .modal-backdrop {
+      align-items: stretch;
+      padding: 20px;
+    }
+
+    #modal-preview .modal-box {
+      max-width: 90vw;
+      max-height: 90vh;
+      width: 900px;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #preview-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-bright);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #preview-content {
+      flex: 1;
+      overflow: auto;
+      background: #06090f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+    }
+
+    .preview-img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      display: block;
+    }
+
+    .preview-video {
+      max-width: 100%;
+      max-height: 70vh;
+      display: block;
+    }
+
+    .preview-pdf {
+      width: 100%;
+      height: 70vh;
+      border: none;
+    }
+
+    .preview-text {
+      padding: 20px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--text);
+      white-space: pre-wrap;
+      overflow: auto;
+      max-height: 70vh;
+      width: 100%;
+    }
+
+    .preview-audio-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 40px;
+    }
+
+    .audio-icon {
+      font-size: 56px;
+    }
+
+    .preview-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 40px;
+      color: var(--text-dim);
+    }
+
+    .preview-error {
+      padding: 40px;
+      color: var(--red);
+      text-align: center;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       AUTH SCREEN
+    ───────────────────────────────────────────────────────────── */
+    #auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 60% at 20% 40%, rgba(var(--brand-rgb), .07) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 60%, rgba(124, 58, 237, .07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .auth-grid-lines {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: .3;
+      pointer-events: none;
+    }
+
+    .auth-card {
+      background: var(--panel);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 40px 40px 36px;
+      width: 420px;
+      max-width: 95vw;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .6);
+      position: relative;
+      z-index: 1;
+      animation: slideUp .25s ease;
+    }
+
+    .auth-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .auth-logo-mark {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .auth-logo-text {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text-bright);
+    }
+
+    .auth-tagline {
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: .3px;
+    }
+
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 9px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+      background: var(--surface);
+      border: none;
+      transition: all .15s;
+      font-family: var(--font);
+    }
+
+    .auth-tab.active-tab {
+      background: var(--surface2);
+      color: var(--text-bright);
+    }
+
+    .form-field {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .auth-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 11px 14px;
+      color: var(--text-bright);
+      font-family: var(--font);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .auth-input:focus {
+      border-color: var(--accent);
+    }
+
+    .auth-input::placeholder {
+      color: var(--text-dim);
+    }
+
+    .btn-auth {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--radius);
+      border: none;
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      background: var(--accent);
+      color: #000;
+      transition: all .2s;
+      letter-spacing: .3px;
+    }
+
+    .btn-auth:hover {
+      background: #22d3ee;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(var(--brand-rgb), .3);
+    }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .auth-divider span {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    #btn-google {
+      width: 100%;
+      margin-top: 4px;
+      display: flex;
+      justify-content: center;
+    }
+
+    #auth-error {
+      background: rgba(239, 68, 68, .1);
+      border: 1px solid rgba(239, 68, 68, .25);
+      color: var(--red);
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 14px;
+      display: none;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       TOAST
+    ───────────────────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed;
+      bottom: 80px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 500;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      color: var(--text-bright);
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 500;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateX(20px);
+      transition: opacity .25s, transform .25s;
+      border-left: 4px solid var(--accent);
+    }
+
+    .toast.success { border-left-color: var(--green); }
+    .toast.error { border-left-color: var(--red); }
+    .toast.info { border-left-color: var(--accent); }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       PROFILE DROPDOWN & SETTINGS MODAL
+    ───────────────────────────────────────────────────────────── */
+    .profile-wrap {
+      position: relative;
+      margin-left: 8px;
+    }
+    .profile-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      cursor: pointer;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--text-dim);
+      transition: border-color .15s;
+    }
+    .profile-btn:hover { border-color: var(--accent); }
+    .profile-btn img { width: 100%; height: 100%; object-fit: cover; display: none; }
+    
+    .profile-dropdown {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 220px;
+      background: var(--panel);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      z-index: 100;
+      display: none;
+      flex-direction: column;
+      animation: popIn .15s ease;
+    }
+    .profile-dropdown.open { display: flex; }
+    .profile-dropdown-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      word-break: break-all;
+    }
+    .profile-email {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-bright);
+    }
+    .profile-menu button {
+      width: 100%;
+      background: none;
+      border: none;
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 13.5px;
+      color: var(--text);
+      cursor: pointer;
+      font-family: var(--font);
+      font-weight: 500;
+      transition: background .15s;
+    }
+    .profile-menu button:hover { background: var(--surface2); }
+    .profile-menu button.danger { color: var(--red); }
+
+    /* Utilities */
+    .hidden {
+      display: none !important;
+    }
+
+    .flex {
+      display: flex;
+    }
+
+    .grid {
+      display: grid;
+    }
+
+    .gap-1 {
+      gap: 4px;
+    }
+
+    .gap-3 {
+      gap: 12px;
+    }
+
+    .flex-col {
+      flex-direction: column;
+    }
+
+    .items-center {
+      align-items: center;
+    }
+  </style>
+  <script>
+    window.TELEDRIVE_WORKER_URL = 'https://teledrive-worker.vivekpereiraalbert.workers.dev';
+    window.GOOGLE_CLIENT_ID = '563051437889-an1hf5tqn2u2cd9smms0o9v13rjnu428.apps.googleusercontent.com'; // optional
+  </script>
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════════════════════════
+     AUTH SCREEN
+  ═════════════════════════════════════════════════════════════ -->
+  <div id="auth-screen">
+    <div class="auth-bg"></div>
+    <div class="auth-grid-lines"></div>
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-mark">📡</div>
+        <div>
+          <div class="auth-logo-text">TeleDrive</div>
+          <div class="auth-tagline">Telegram-powered cloud storage</div>
+        </div>
+      </div>
+
+      <div id="auth-error"></div>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active-tab" id="tab-login">Sign In</button>
+        <button class="auth-tab" id="tab-register">Create Account</button>
+      </div>
+
+      <!-- Login form -->
+      <form id="form-login">
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input id="login-email" class="auth-input" type="email" placeholder="you@example.com" required
+            autocomplete="email">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input id="login-password" class="auth-input" type="password" placeholder="••••••••" required
+            autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-auth">Sign In</button>
+      </form>
+
+      <!-- Register form (hidden) -->
+      <form id="form-register" class="hidden">
+        <div class="form-field">
+          <label class="form-label">Display Name</label>
+          <input id="reg-name" class="auth-input" type="text" placeholder="Your name">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Email</label>
+          <input id="reg-email" class="auth-input" type="email" placeholder="you@example.com" required>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Password</label>
+          <input id="reg-password" class="auth-input" type="password" placeholder="Min. 8 characters" required>
+        </div>
+        <button type="submit" class="btn-auth">Create Account</button>
+      </form>
+
+      <div class="auth-divider"><span>or</span></div>
+      <div id="btn-google"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+     APP SCREEN
+  ═════════════════════════════════════════════════════════════ -->
+  <div id="app-screen" class="hidden">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark"><i data-lucide="hard-drive"></i></div>
+        <span class="logo-text">TeleDrive</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-label">Files</div>
+          <div data-nav="files" class="active">
+            <span class="nav-icon"><i data-lucide="folder" size="16"></i></span> My Files
+          </div>
+          <div data-nav="trash">
+            <span class="nav-icon"><i data-lucide="trash-2" size="16"></i></span> Trash
+          </div>
+        </div>
+      </nav>
+
+      <!-- Storage indicator -->
+      <div class="storage-widget">
+        <div class="storage-header">
+          <span class="storage-title">Storage</span>
+          <span id="storage-label">—</span>
+        </div>
+        <div class="storage-track">
+          <div id="storage-bar"></div>
+        </div>
+      </div>
+
+      <!-- User row -->
+      <div class="user-row">
+        <div class="user-avatar-wrap">
+          <img id="user-avatar" alt="Avatar">
+          <span id="user-avatar-placeholder"><i data-lucide="user"></i></span>
+        </div>
+        <span id="user-display">—</span>
+        <button id="btn-logout" title="Sign out"><i data-lucide="log-out" size="16"></i></button>
+      </div>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main id="main-panel">
+      <!-- Top bar -->
+      <div id="topbar">
+        <h1 id="panel-title" style="min-width:80px">My Files</h1>
+        <div id="breadcrumbs"><span class="bc-item" data-folder-id="">Home</span></div>
+
+        <div id="topbar-actions">
+          <div class="search-wrap">
+            <span class="search-icon"><i data-lucide="search" size="14"></i></span>
+            <input id="search-input" type="text" placeholder="Search files…">
+          </div>
+
+          <select id="sort-select">
+            <option value="created_at:desc">Newest first</option>
+            <option value="created_at:asc">Oldest first</option>
+            <option value="name:asc">Name A–Z</option>
+            <option value="name:desc">Name Z–A</option>
+            <option value="size:desc">Largest first</option>
+            <option value="size:asc">Smallest first</option>
+          </select>
+
+          <div class="layout-toggle">
+            <button id="btn-grid" title="Grid view"><i data-lucide="layout-grid" size="18"></i></button>
+            <button id="btn-list" title="List view"><i data-lucide="list" size="18"></i></button>
+          </div>
+
+          <button class="btn btn-secondary" id="btn-new-folder"><i data-lucide="folder-plus"></i> New Folder</button>
+          <button class="btn btn-primary" id="btn-upload"><i data-lucide="upload"></i> Upload</button>
+          <input type="file" id="file-input" multiple style="display:none">
+
+          <!-- Profile Dropdown -->
+          <div class="profile-wrap">
+            <button class="profile-btn" id="btn-profile">
+              <img id="top-avatar" alt="Avatar">
+              <span id="top-avatar-placeholder">👤</span>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown">
+              <div class="profile-dropdown-header">
+                <div class="profile-email" id="top-email">—</div>
+              </div>
+              <div class="profile-menu">
+                <button id="btn-open-settings"><i data-lucide="settings" size="14"></i> Settings</button>
+                <button id="btn-top-logout" class="danger"><i data-lucide="log-out" size="14"></i> Sign out</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content area -->
+      <div id="content-area">
+        <div class="list-header hidden" id="list-header">
+          <span></span>
+          <span>Name</span>
+          <span>Size</span>
+          <span>Date</span>
+          <span></span>
+        </div>
+        <div id="file-grid"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+     CONTEXT MENU
+  ═════════════════════════════════════════════════════════════ -->
+  <div id="ctx-menu" class="hidden">
+    <div class="ctx-item" data-ctx="preview"><span class="ctx-icon"><i data-lucide="eye" size="14"></i></span> Preview</div>
+    <div class="ctx-item" data-ctx="download"><span class="ctx-icon"><i data-lucide="download" size="14"></i></span> Download</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" data-ctx="rename"><span class="ctx-icon"><i data-lucide="edit-3" size="14"></i></span> Rename</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item danger" data-ctx="delete"><span class="ctx-icon"><i data-lucide="trash-2" size="14"></i></span> Move to Trash</div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item" data-ctx="restore"><span class="ctx-icon"><i data-lucide="rotate-ccw" size="14"></i></span> Restore</div>
+    <div class="ctx-item danger" data-ctx="delete-forever"><span class="ctx-icon"><i data-lucide="trash-2" size="14"></i></span> Delete Forever</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+     MODALS
+  ═════════════════════════════════════════════════════════════ -->
+
+  <!-- New Folder -->
+  <div id="modal-new-folder" class="modal modal-backdrop hidden"
+    onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="modal-box">
+      <div class="modal-title">New Folder</div>
+      <input type="text" id="new-folder-name" placeholder="Folder name" maxlength="128">
+      <div class="modal-actions">
+        <button class="btn btn-secondary"
+          onclick="document.getElementById('modal-new-folder').classList.add('hidden')">Cancel</button>
+        <button class="btn btn-primary" data-action="confirm">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename -->
+  <div id="modal-rename" class="modal modal-backdrop hidden"
+    onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="modal-box">
+      <div class="modal-title">Rename</div>
+      <input type="text" id="rename-input" maxlength="256">
+      <div class="modal-actions">
+        <button class="btn btn-secondary"
+          onclick="document.getElementById('modal-rename').classList.add('hidden')">Cancel</button>
+        <button class="btn btn-primary" data-action="confirm">Rename</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Preview -->
+  <div id="modal-preview" class="modal modal-backdrop hidden">
+    <div class="modal-box"
+      style="padding:0;width:900px;max-width:95vw;max-height:90vh;display:flex;flex-direction:column;overflow:hidden">
+      <div class="preview-header">
+        <span id="preview-title"
+          style="font-size:14px;font-weight:600;color:var(--text-bright);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        <button class="btn-icon"
+          onclick="document.getElementById('modal-preview').classList.add('hidden');document.getElementById('preview-content').innerHTML=''">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div id="preview-content"
+        style="flex:1;overflow:auto;background:#06090f;display:flex;align-items:center;justify-content:center;min-height:300px">
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="modal-settings" class="modal modal-backdrop hidden"
+    onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="modal-box" style="width:400px">
+      <div class="modal-title">Settings</div>
+      
+      <div class="form-field">
+        <label class="form-label">Theme</label>
+        <select id="theme-select" class="auth-input" style="cursor:pointer">
+          <option value="blue">Blue (Default)</option>
+          <option value="emerald">Emerald</option>
+          <option value="violet">Violet</option>
+          <option value="rose">Rose</option>
+        </select>
+      </div>
+
+      <div class="form-field" style="margin-top:16px">
+        <label class="form-label">Parallel Uploads (Concurrency)</label>
+        <input type="number" id="setting-concurrency" class="auth-input" min="1" max="10" placeholder="3">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Higher values saturate bandwidth but may be slower on some connections.</div>
+      </div>
+
+      <div class="form-field" style="margin-top:16px">
+        <label class="form-label">Custom Telegram API URL</label>
+        <input type="text" id="setting-tg-api" class="auth-input" placeholder="https://api.telegram.org">
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Used by browser for direct uploads only. Default: https://api.telegram.org</div>
+      </div>
+
+      <div class="form-field" style="margin-top:16px">
+        <label class="form-label">Backend Worker URL</label>
+        <input type="text" id="setting-worker-url" class="auth-input" placeholder="https://your-worker.workers.dev">
+      </div>
+
+      <div class="modal-actions" style="margin-top:24px">
+        <button class="btn btn-secondary"
+          onclick="document.getElementById('modal-settings').classList.add('hidden')">Close</button>
+        <button class="btn btn-primary" id="btn-save-settings">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+     UPLOAD PANEL
+  ═════════════════════════════════════════════════════════════ -->
+  <div id="upload-panel" class="hidden">
+    <div class="upload-panel-header">
+      <i data-lucide="upload" size="14"></i> Uploads
+    </div>
+    <div id="upload-list"></div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+     SELECTION BAR
+  ═════════════════════════════════════════════════════════════ -->
+  <div id="selection-bar" class="hidden">
+    <span data-sel-count>0 selected</span>
+    <button class="btn btn-secondary" style="padding:6px 10px;font-size:12px" onclick="clearSelectionAction()">
+      <i data-lucide="download" size="14"></i> Download</button>
+    <button class="btn btn-secondary" style="padding:6px 10px;font-size:12px;color:var(--red)"
+      onclick="deleteSelectionAction()">
+      <i data-lucide="trash-2" size="14"></i> Delete</button>
+    <button class="btn-icon" onclick="App.clearSelection()" title="Clear"><i data-lucide="x"></i></button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+     DROP OVERLAY
+  ═════════════════════════════════════════════════════════════ -->
+  <div id="drop-overlay" class="hidden">
+    <div class="drop-message">Drop files to upload</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════
+     TOAST CONTAINER
+  ═════════════════════════════════════════════════════════════ -->
+  <div id="toast-container"></div>
+
+  <script type="module">
+    import * as App from './app.js';
+    import * as UI from './ui.js';
+    import { queueFiles, pauseUpload, resumePausedUpload, cancelUpload } from './uploader.js';
+
+    // Expose for inline handlers
+    window.App = App;
+
+    // ── MAIN APP ───────────────────────────────────────────────────
+    UI.init();
+    UI.wireContextActions();
+
+    // Selection bulk actions
+    window.clearSelectionAction = () => UI.bulkDownload();
+    window.deleteSelectionAction = () => UI.bulkDelete();
+
+    // Upload Actions
+    window.toggleUploadAction = (id) => {
+      const job = App.state.uploads.find(j => j.id === id);
+      if (job) {
+        if (job.status === 'paused') resumePausedUpload(id);
+        else pauseUpload(id);
+      }
+    };
+    window.cancelUploadAction = (id) => {
+      cancelUpload(id);
+      const row = document.getElementById(`urow-${id}`);
+      if(row) row.remove();
+      const list = document.getElementById('upload-list');
+      if (list && !list.children.length) document.getElementById('upload-panel').classList.add('hidden');
+    };
+
+    // Layout toggle active state
+    App.on('layout:change', layout => {
+      document.getElementById('btn-grid').classList.toggle('active', layout === 'grid');
+      document.getElementById('btn-list').classList.toggle('active', layout !== 'grid');
+      document.getElementById('list-header').classList.toggle('hidden', layout === 'grid');
+    });
+
+    // Apply initial layout
+    App.emit('layout:change', App.state.layout);
+
+    // Restore session or show auth
+    const restored = await App.restoreSession();
+    if (!restored) {
+      document.getElementById('auth-screen').classList.remove('hidden');
+    }
+  </script>
+
+  <!-- Google Identity Services (configure GOOGLE_CLIENT_ID) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+</body>
+
+</html>
